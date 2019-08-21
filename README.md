@@ -1,72 +1,107 @@
-一、简介
-本工具基于开源工具Data-Processer进行改造，能够支持中文词典，随机生成具备特征的数据。使用者可根据实际需求，创建对应的模版和词典，快速构造量级的模拟数据。
-
-二、术语
-函数变量：模版和词典中以"$Func{"开头，以"}"结尾的字符串是一个函数变量。形如：$Func{intRand()}，其中，intRand()为内置函数。不支持函数嵌套
-词典变量：模版中以"$Dic{"开头，以"}"结尾的字符串是一个词典变量。形如：$Dic{name},其中，name为词典文件中的一个词典名。
-自定义变量：模版中以"$Var{"开头，以"}"结尾的字符串是一个自定义变量。形如：$Var{tmp}，其中，tmp是自定义变量名。自定义变量需要与函数变量或者词典变量联合使用，中间以"="隔开，且无空格。
-定义方式：$Var{tmp}=$Func{doubleRand(0,10,2)}。引用方式是；$Var{tmp}
-
-三、内置函数
-long timestamp() ：生成当前13位时间戳（ms）。
-int intRand() ：生成int正随机整数。
-int intRand(Integer n) ：生成0～n的随机整数。
-int intRand(Integer s, Integer e) ：生成s～e的随机整数。
-long longRand() ：生成long正随机整数。
-double doubleRand() ：生成0～1.0的随机双精度浮点数。
-doubleRand(Integer s, Integer e, Integer n) ：生成s～e的保留n位有效数字的浮点数。
-String uuid() ：生成一个uuid。
-String numRand(Integer n) ：生成n位随机数。
-String strRand(Integer n) ：生成n位字符串，包括数字，大小写字母。
-String phoneNumberRand() ：生成手机号码
-String addressRand() ：生成地址
-String nameRand() ：生成姓名
-String idCardRand(Integer digit) ：生成身份证，入参为0或1，其中0为生成18位身份证，1为生成15位身份证
-String plateRand() ：生成车牌号
-String dateRand(String beginDate, String endDate, String dateFormate) ：生成区间内特定格式的时间（dateFormate参数中限制字为“@”，String类型参数格式为"value"）
-
-四、使用简介
-1、引入simulatedata-generator-0.0.1-SNAPSHOT.jar文件作为依赖
-2、添加字典
-（1）在dictionaries目录下添加以dic为后缀的字典文件
-（2）字典定义格式为字典名=字典值，字典值支持以下两种形式：
-	枚举：枚举的字典值以“|||”为分割，如男|||女
-	变量：变量形式为"$Func{内置函数}"（内置函数不支持嵌套），如$Func{intRand()}
+# Data-Processer
+## 简介 
+##### 1、是什么？
 	
-3、添加模板
-（1）在templas目录下添加以tpl为后缀的模板文件
-（2）模板内容根据实际需求编写，支持函数、词典、自定义，若需要继承某一参数的数值，可通过定义变量的形式，例：
-	"version": $Var{tmp}=$Func{doubleRand(0,10,2)},
-	"os": "$Var{tmp}"
-	os的取值将与version保持一致
-（3）模板示例与生成数据示例
+  它是一个模拟数据生成器。我们在测试过程中，产生完整、全面的真实数据可能比较困难。我们可以根据需求，创建对应的模版和词典，利用数据模拟生成器生成我们需要的模拟数据。
 
-4、生成数据
-（1）初始化字典
- DicInitializer.init();
-词典中含有模版中需要的常量以及函数，词典文件以dic为后缀名，test.dic词典文件形如:
-    name=xiaoming|||hanmeimei|||lilei
-    reqUrl=http://www.abc.com/a/b/c|||http://www.def.com/d/e/f
-    tmp=$Func{intRand(1000000000, 1999999999)}
-    b=testVar
-    ot=$Func{intRand(2)}
-等号前面是词典名，等号后面是词典值，值可以是字符串，也可以是函数变量，多个值用"|||"隔开。如果有多个值，取值时，会随机取其中一个值作为词典变量值。 注意：词典文件放置在应用跟目录下的dictionaries目录下。
-（2）读取模板文件，创建模版分析器
-String tpl = FileUtils.readFileToString(tplFile,"UTF-8");
-String tplName = tplFile.getName();
-TemplateAnalyzer testTplAnalyzer = new TemplateAnalyzer(tplName, tpl);
-模版文件以tpl后缀名，test.tpl模版文件形如：
- {
-    "infos":{
-        "d_id": $Func{intRand()},
-        "version": $Var{tmp}=$Func{doubleRand(0,10,2)},
-        "os_type": "$Dic{ot}",
-        "os": "$Var{tmp}",
-        "test": "$Dic{b}"
-        }
- }
-在模版文件中，在需要的地方放置变量（函数，词典，或者自定义），变量定义方式如第三点（术语）所述。在上面的模版中，version取值是$Func{doubleRand(0,10,2)}的值，然后将$Func{doubleRand(0,10,2)}的值赋给$Var{tmp}，在下面os处，以$Var{tmp}方式引用。这样，version和os的取值就一样了。
-（3）解析模板，生成数据
- testTplAnalyzer.analyse();
+##### 2、能做什么？
+	
+  他能够根据构建的模版和词典，生成我们需要的数据。
+	
+##### 应用场景：
 
+   - 测试场景
+    
+    测试过程中，我们需要验证数据后端的功能或性能，此时，需要降低与数据产生端的耦合，那么需要一个稳定优秀的数据生成器，来持续的不间断的产生正确的数据，和特殊情况下的异常数据。
+    
+   - 持续集成场景
+    
+    在整个持续集成场景中，一个或多个模块组成一个平台，需要有源源不断的数据进入持续集成环境，用以自动化地完成测试和迭代工作，使用Data-Processer则可以通过数据样本的指定和简单的编码，非常简单地完成这个需求。
+    
+   - 生产场景
+    
+    在一个项目完成测试和迭代，发布到生产环境之后，通常也需要进行持续的功能或可用性监测，那么则需要有各种正常或异常数据按照某种规则和定义，持续稳定地生产并送回平台，此时将持续集成场景中的case，只需通过简单配置，则可以进行生产的验证，以满足这个需求。
+
+
+##### 3、术语：
+	
+   * 函数变量：模版和词典中以"$Func{"开头，以"}"结尾的字符串是一个函数变量。形如：$Func{intRand()}，其中，intRand()为内置函数。不支持函数嵌套
+   * 词典变量：模版中以"$Dic{"开头，以"}"结尾的字符串是一个词典变量。形如：$Dic{name},其中，name为词典文件中的一个词典名。
+   * 自定义变量：模版中以"$Var{"开头，以"}"结尾的字符串是一个自定义变量。形如：$Var{tmp}，其中，tmp是自定义变量名。自定义变量需要与函数变量或者词典变量联合使用，中间以"="隔开，且无空格。
+	  定义方式：$Var{tmp}=$Func{doubleRand(0,10,2)}。引用方式是；$Var{tmp}
+
+
+##### 4、内置函数
+
+   - long timestamp()
+     生成当前13位时间戳（ms）。
+   - int intRand()
+     生成int正随机整数。
+   - int intRand(Integer n)
+     生成0～n的随机整数。
+   - int intRand(Integer s, Integer e)
+     生成s～e的随机整数。
+   - long longRand()
+     生成long正随机整数。
+   - double doubleRand()
+     生成0～1.0的随机双精度浮点数。
+   - doubleRand(Integer s, Integer e, Integer n)
+     生成s～e的保留n位有效数字的浮点数。
+   - String uuid()
+     生成一个uuid。
+   - String numRand(Integer n)
+     生成n位随机数。
+   - String strRand(Integer n)
+     生成n位字符串，包括数字，大小写字母。
+   - String phoneNumberRand()
+     生成手机号码
+   - String addressRand()
+     生成地址
+   - String nameRand()
+     生成姓名
+   - String idCardRand(Integer digit)
+     生成身份证，入参为0或1，其中0为生成18位身份证，1为生成15位身份证
+   - static String plateRand()
+     生成车牌号
+   - String dateRand(Integer dateType)
+     生成区间内特定格式的时间,1表示日期格式,2表示时间格式
+    
+##### 5、怎么用？
+ 
+（1） 使用之前，需要引入simulatedata-generator-0.0.1-SNAPSHOT.jar文件。
+
+   
+（2） 编辑词典
+
+    词典中含有模版中需要的常量以及函数，词典文件以dic为后缀名，test.dic词典文件形如:
+        name=xiaoming|||hanmeimei|||lilei
+        reqUrl=http://www.abc.com/a/b/c|||http://www.def.com/d/e/f
+        tmp=$Func{intRand(1000000000, 1999999999)}
+        b=testVar
+        ot=$Func{intRand(2)}
+  等号前面是词典名，等号后面是词典值，值可以是字符串，也可以是函数变量，多个值用"|||"隔开。如果有多个值，取值时，会随机取其中一个值作为词典变量值。
+  `注意：词典文件放置在应用跟目录下的dictionaries目录下`。
+		
+（3） 编辑模版
+
+    模版文件以tpl后缀名，test.tpl模版文件形如：
+     {
+        "infos":{
+            "d_id": $Func{intRand()},
+            "version": $Var{tmp}=$Func{doubleRand(0,10,2)},
+            "os_type": "$Dic{ot}",
+            "os": "$Var{tmp}",
+            "test": "$Dic{b}"
+            }
+     }
+  在模版文件中，在需要的地方放置变量（函数，词典，或者自定义），变量定义方式如第三点（术语）所述。在上面的模版中，version取值是$Func{doubleRand(0,10,2)}的值，然后将$Func{doubleRand(0,10,2)}的值赋给$Var{tmp}，在下面os处，以$Var{tmp}方式引用。这样，version和os的取值就一样了。
+	  
+（4） 调用Api执行
+	    
+     //加载词典
+     DicInitializer.init();
+     //创建模版分析器
+     TemplateAnalyzer testTplAnalyzer = new TemplateAnalyzer(tplName, tpl);
+     //分析模版生成模拟数据
+     testTplAnalyzer.analyse();
 
