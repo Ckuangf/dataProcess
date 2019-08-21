@@ -1,14 +1,11 @@
 package com.cloudwise.sdg.dic;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Properties;
 
 /**
  * 初始化词典数据 /dictionarys
- * 
+ *
  * @author www.toushibao.com
  *
  */
@@ -33,7 +30,8 @@ public class DicInitializer {
 	public static Properties loadDic(String path) throws Exception {
 		Properties p = new Properties();
 		InputStream is = new FileInputStream(path);
-		InputStreamReader ir = new InputStreamReader(is,"UTF-8");
+		//InputStreamReader ir = new InputStreamReader(is,"UTF-8");
+		BufferedReader ir = new BufferedReader(new UnicodeReader(is, "utf-8"));
 		p.load(ir);
 		is.close();
 		return p;
@@ -41,7 +39,8 @@ public class DicInitializer {
 
 	public static void main(String[] args) throws Exception {
 		init();
+		System.out.println(Dictionary.getDicStr("test"));
 		System.out.println(Dictionary.getDicStr("name"));
-		System.out.println(Dictionary.getDicArray("name")[2]);
+		System.out.println(Dictionary.getDicArray("test")[1]);
 	}
 }
